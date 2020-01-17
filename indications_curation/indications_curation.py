@@ -585,7 +585,7 @@ def gen_curation_spreadsheet():
     writer.save()
     writer.close()
 
-    cb.save_sentences(verbose=False, overwrite=True)
+    save_sentences(verbose=False, overwrite=True)
 
 def gen_populated_answers_data(sentence_index):
     global ca_conn
