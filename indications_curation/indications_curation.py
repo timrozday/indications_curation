@@ -1112,9 +1112,6 @@ def add_filter_rules_from_answers(verbose=False):
     global ca_conn
     global spl_id
     
-    acronyms = []
-    nevers = []
-    donts = []
     sentence_ids, node_ids, answer_ids, answers_hier_ids = get_ids()
     for s_id, match_path, code, acronym, never_match, dont_match in ca_conn.execute(f'select sentence_id,locs,code,acronym,never_match,dont_match from answers where id in {repr(tuple(answer_ids))}'):
         match_path = eval(match_path)
@@ -1123,12 +1120,12 @@ def add_filter_rules_from_answers(verbose=False):
         dont_match = True if dont_match>0 else False
 
         # if dont_match or acronym then fetch sentence words
-        if dont_match or acronyms:
+        if dont_match or acronym:
             sentence = eval(list(ca_conn.execute(f'select sentence from sentences where id=?', (s_id,)))[0][0])
             words = [sentence['words'][i]['word'] for i in match_path]
         
         if dont_match: add_dont_match(spl_id, code, words, verbose, ca_conn)
-        if acronyms: add_acronym(spl_id, words, verbose, ca_conn)
+        if acronym: add_acronym(spl_id, words, verbose, ca_conn)
         if never_match: add_never_match(spl_id, code, verbose, ca_conn)
     
     ca_conn.commit()
