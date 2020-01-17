@@ -1272,7 +1272,8 @@ def list_spls(sort_col="id", ascending=False, filter_curated=None, print_results
         if not spl_id==False:
             sentence_ids = [int(i[0]) for i in ca_conn.execute('select id from sentences where spl_id=?', (spl_id,))]  # get sentence IDs
             if len(sentence_ids)>0:
-                answers_n = len(list(ca_conn.execute(f'select id from answers where sentence_id in {repr(tuple(sentence_ids))}')))
+                if len(sentence_ids)==1: answers_n = len(list(ca_conn.execute(f'select id from answers where sentence_id=?', (sentence_ids[0],))))
+                else: answers_n = len(list(ca_conn.execute(f'select id from answers where sentence_id in {repr(tuple(sentence_ids))}')))
             else:
                 answers_n = 0
         else:
