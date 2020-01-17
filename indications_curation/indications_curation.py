@@ -687,7 +687,12 @@ def load_curation_spreadsheet():
 def parse_answer_row(r, answers_df):
     r = {c:r[i] for i,c in enumerate(answers_df.columns)}
     
-    r['match_path'] = tuple([int(n) for n in r['match_path'].split(',')])
+    try: r['match_path'] = tuple([int(n) for n in r['match_path'].split(',')])
+    except Exception as e: 
+        if isinstance(r['match_path'], int):
+            r['match_path'] = [r['match_path']]
+        else:
+            raise e
     
     if pd.isna(r['true_match']):
         r['true_match'] = False
