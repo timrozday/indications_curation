@@ -381,12 +381,14 @@ def gen_matches(expanded_sentence):
     return matches
 
 def gen_spl_matches():
-    global spl_id
     global indi_conn
-
+    global set_id    
+    
+    indi_spl_id = int(list(indi_conn.execute("select id from spl where set_id=?",(set_id,)))[0][0])
+    
     sentences = []
     matches_index = {}
-    for s_id, parent_node_id, spl_id, loc, string, sentence, expanded_sentence in indi_conn.execute("select id, parent_node_id, spl_id, loc, string, sentence, expanded_sentence from sentences where spl_id=?", (spl_id,)):
+    for s_id, parent_node_id, loc, string, sentence, expanded_sentence in indi_conn.execute("select id, parent_node_id, loc, string, sentence, expanded_sentence from sentences where spl_id=?", (indi_spl_id,)):
         sentence = eval(sentence)
         loc = eval(loc)
         expanded_sentence = expand_sentence(sentence)
