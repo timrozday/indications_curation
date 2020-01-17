@@ -1334,10 +1334,10 @@ def select_spl(indi_spl_id, overwrite=True, verbose=True):
                 
 # pick random SPL
 def pick_random_spl(filter_curated=False):
-    spl_space = list_spls(indi_conn, filter_curated=False, print_results=False, top_N=None)
+    spl_space = list_spls(filter_curated=False, print_results=False, top_N=None)
     if len(spl_space)>0:
         indi_spl_id = int(spl_space.sample(1)['id'])
-        select_spl(indi_spl_id, indi_conn, ca_conn)
+        select_spl(indi_spl_id)
         return indi_spl_id
     else:
         return None
