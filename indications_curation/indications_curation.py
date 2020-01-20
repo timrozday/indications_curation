@@ -572,7 +572,7 @@ def gen_curation_spreadsheet():
     sentences_df, sentence_index = gen_sentences_df(sentences, matches)
     
     filtered_sentences, filtered_matches = filter_match_sentences(sentences, matches)
-    condensed_matches = group_matches(filtered_sentences, matches)
+    condensed_matches = group_matches(filtered_sentences, filtered_matches)
     data = gen_blank_answers_data(condensed_matches, sentence_index)
     answers_df = pd.DataFrame(data, columns=['id', 'group_id', 'sentence_id', 'sentence', 'match_path', 'code', 'name', 'predicate_type', "true_match", "indication", "acronym", "never_match", "dont_match", "negative", "note"])  # 'set_id', 'sentence_loc'
     
