@@ -175,7 +175,6 @@ def setup_database(fn="/Users/timrozday/Documents/manual_curation_dm_inds/csv_cu
     ca_conn.execute('create index codes_source_index ON codes(source)')
 
     ca_conn.execute('create unique index answers_id_index ON answers(id)')
-    ca_conn.execute('create unique index answers_answer_id_index ON answers(answer_id)')
     ca_conn.execute('create index answers_sentence_id_index ON answers(sentence_id)')
     ca_conn.execute('create index answers_code_id_index ON answers(code_id)')
     ca_conn.execute('create index answers_code_index ON answers(code)')
@@ -322,7 +321,8 @@ def help():
         "gen_filter_rules_spreadsheet": ("Generate spreadsheet populated with filter rules",""),
         "add_filter_rules_from_spreadsheet": ("Add filter rules from the spreadsheet (allowing manual modification of the rules)","verbose=False: boolean"),
         "add_filter_rules_from_answers": ("Add filter rules from curation answers of the current SPL","verbose=False: boolean"),
-        "gen_curation_spreadsheet": ("Generate curation spreadsheet",""),
+        "add_filter_rules_from_all_answers": ("Add filter rules from all curation answers","verbose=False: boolean"),
+	"gen_curation_spreadsheet": ("Generate curation spreadsheet",""),
         "load_curation_spreadsheet": ("Generate spreadsheet of curation answers loaded from the database",""),
 
         "verify_answers": ("Verify curation answers in spreadsheet, printing out errors and editting the spreadsheet to highlight errors","verbose=False: boolean, write_file=True: (boolean)"),
@@ -1115,28 +1115,41 @@ def add_never_match(spl_id, code, verbose, ca_conn):
     except IntegrityError as e:
         if verbose: print(f"Never-match rule '{code}' already in database")
             
+def add_filter_rules_from_answer(s_id, match_path, code, acronym, never_match, dont_match):
+    global ca_conn
+
+    match_path = eval(match_path)
+    acronym = True if acronym>0 else False
+    never_match = True if never_match>0 else False
+    dont_match = True if dont_match>0 else False
+
+    # if dont_match or acronym then fetch sentence words
+    if dont_match or acronym:
+        sentence = eval(list(ca_conn.execute(f'select sentence from sentences where id=?', (s_id,)))[0][0])
+        words = [sentence['words'][i]['word'] for i in match_path]
+        
+    if dont_match: add_dont_match(spl_id, code, words, verbose, ca_conn)
+    if acronym: add_acronym(spl_id, words, verbose, ca_conn)
+    if never_match: add_never_match(spl_id, code, verbose, ca_conn)
+
 def add_filter_rules_from_answers(verbose=False):
     global ca_conn
     global spl_id
     
     sentence_ids, node_ids, answer_ids, answers_hier_ids = get_ids()
     for s_id, match_path, code, acronym, never_match, dont_match in ca_conn.execute(f'select sentence_id,locs,code,acronym,never_match,dont_match from answers where id in {repr(tuple(answer_ids))}'):
-        match_path = eval(match_path)
-        acronym = True if acronym>0 else False
-        never_match = True if never_match>0 else False
-        dont_match = True if dont_match>0 else False
-
-        # if dont_match or acronym then fetch sentence words
-        if dont_match or acronym:
-            sentence = eval(list(ca_conn.execute(f'select sentence from sentences where id=?', (s_id,)))[0][0])
-            words = [sentence['words'][i]['word'] for i in match_path]
-        
-        if dont_match: add_dont_match(spl_id, code, words, verbose, ca_conn)
-        if acronym: add_acronym(spl_id, words, verbose, ca_conn)
-        if never_match: add_never_match(spl_id, code, verbose, ca_conn)
+        add_filter_rules_from_answer(s_id, match_path, code, acronym, never_match, dont_match)
     
     ca_conn.commit()
-
+    
+def add_filter_rules_from_all_answers(verbose=False):
+    global ca_conn
+    
+    for s_id, match_path, code, acronym, never_match, dont_match in ca_conn.execute(f'select sentence_id,locs,code,acronym,never_match,dont_match from answers'):
+        add_filter_rules_from_answer(s_id, match_path, code, acronym, never_match, dont_match)
+    
+    ca_conn.commit()
+			    
 def get_insert_spl_id(set_id, ca_conn, cache, verbose=False):
     global zip_metadata
 
