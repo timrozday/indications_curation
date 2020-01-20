@@ -423,6 +423,8 @@ def filter_match_sentences(sentences, matches_index):
     global nevers_dict
     global acronyms_set
     
+    print(acronyms_set)
+    
     filtered_sentences = []
     filtered_matches_index = {}
     for s_id, loc, sentence, expanded_sentence in sentences:
@@ -464,6 +466,12 @@ def filter_match_sentences(sentences, matches_index):
                 dont_filtered_match_paths.update(match_paths)
 
             filtered_match_paths = dont_filtered_match_paths & acronym_filtered_match_paths
+            if len(acronym_filtered_match_paths) < len(dont_filtered_match_paths):
+                text = []
+                for mp in dont_filtered_match_paths:
+                    mp_words = [sentence['words'][i]['word'] for i in mp]
+                    text.append(' '.join(mp_words))
+                print(filtered_match_paths, dont_filtered_match_paths, acronym_filtered_match_paths, text)
             if len(filtered_match_paths)>0:
                 filtered_matches.append((code,p_type,tuple(sorted(filtered_match_paths))))
 
