@@ -1115,7 +1115,7 @@ def add_never_match(spl_id, code, verbose, ca_conn):
     except IntegrityError as e:
         if verbose: print(f"Never-match rule '{code}' already in database")
             
-def add_filter_rules_from_answer(s_id, match_path, code, acronym, never_match, dont_match):
+def add_filter_rules_from_answer(spl_id, s_id, match_path, code, acronym, never_match, dont_match):
     global ca_conn
 
     match_path = eval(match_path)
@@ -1138,7 +1138,7 @@ def add_filter_rules_from_answers(verbose=False):
     
     sentence_ids, node_ids, answer_ids, answers_hier_ids = get_ids()
     for s_id, match_path, code, acronym, never_match, dont_match in ca_conn.execute(f'select sentence_id,locs,code,acronym,never_match,dont_match from answers where id in {repr(tuple(answer_ids))}'):
-        add_filter_rules_from_answer(s_id, match_path, code, acronym, never_match, dont_match)
+        add_filter_rules_from_answer(spl_id, s_id, match_path, code, acronym, never_match, dont_match)
     
     ca_conn.commit()
     
@@ -1146,6 +1146,7 @@ def add_filter_rules_from_all_answers(verbose=False):
     global ca_conn
     
     for s_id, match_path, code, acronym, never_match, dont_match in ca_conn.execute(f'select sentence_id,locs,code,acronym,never_match,dont_match from answers'):
+        spl_id = int(list(ca_conn.execute('select spl_id from sentences where id=?', (s_id,)))[0][0])
         add_filter_rules_from_answer(s_id, match_path, code, acronym, never_match, dont_match)
     
     ca_conn.commit()
