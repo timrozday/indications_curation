@@ -423,7 +423,7 @@ def filter_match_sentences(sentences, matches_index):
     global nevers_dict
     global acronyms_set
     
-    print(acronyms_set)
+    # print(acronyms_set)
     
     filtered_sentences = []
     filtered_matches_index = {}
@@ -466,12 +466,12 @@ def filter_match_sentences(sentences, matches_index):
                 dont_filtered_match_paths.update(match_paths)
 
             filtered_match_paths = dont_filtered_match_paths & acronym_filtered_match_paths
-            if len(acronym_filtered_match_paths) < len(dont_filtered_match_paths):
-                text = []
-                for mp in dont_filtered_match_paths:
-                    mp_words = [sentence['words'][i]['word'] for i in mp]
-                    text.append(' '.join(mp_words))
-                print(filtered_match_paths, dont_filtered_match_paths, acronym_filtered_match_paths, text)
+            # if len(acronym_filtered_match_paths) < len(dont_filtered_match_paths):
+            #     text = []
+            #     for mp in dont_filtered_match_paths:
+            #         mp_words = [sentence['words'][i]['word'] for i in mp]
+            #         text.append(' '.join(mp_words))
+            #     print(filtered_match_paths, dont_filtered_match_paths, acronym_filtered_match_paths, text)
             if len(filtered_match_paths)>0:
                 filtered_matches.append((code,p_type,tuple(sorted(filtered_match_paths))))
 
@@ -1111,9 +1111,9 @@ def add_dont_match(spl_id, code, words, verbose, ca_conn):
 
 def add_acronym(spl_id, words, verbose, ca_conn):        
     try:
-        ca_conn.execute('insert into acronym(spl_id,words) values(?,?)', (spl_id, repr(words)))
+        ca_conn.execute('insert into acronym(spl_id,words) values(?,?)', (spl_id, repr(tuple([w.lower() for w in words]))))
     except IntegrityError as e:
-        if verbose: print(f"Acronym rule '{repr(words)}' already in database")
+        if verbose: print(f"Acronym rule '{repr(tuple([w.lower() for w in words]))}' already in database")
             
 def add_never_match(spl_id, code, verbose, ca_conn):
     try: code_id = int(list(ca_conn.execute('select id from codes where code=?', (code,)))[0][0])
