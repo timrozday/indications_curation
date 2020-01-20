@@ -1147,7 +1147,7 @@ def add_filter_rules_from_all_answers(verbose=False):
     
     for s_id, match_path, code, acronym, never_match, dont_match in ca_conn.execute(f'select sentence_id,locs,code,acronym,never_match,dont_match from answers'):
         spl_id = int(list(ca_conn.execute('select spl_id from sentences where id=?', (s_id,)))[0][0])
-        add_filter_rules_from_answer(s_id, match_path, code, acronym, never_match, dont_match)
+        add_filter_rules_from_answer(spl_id, s_id, match_path, code, acronym, never_match, dont_match)
     
     ca_conn.commit()
 			    
