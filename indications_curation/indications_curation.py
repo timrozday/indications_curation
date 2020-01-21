@@ -507,6 +507,7 @@ def gen_blank_answers_data(condensed_matches, sentence_index):
                 s_text = sentence_index[d['loc']['sentence_loc']]['text']
 
                 path = d['loc']['path']
+                path = ','.join([str(i) for i in path])
                 data.append([group_i, s_id, s_text, path, path, code, name, p_type, "?", "", "", "", "", "", ""])  # set_id, d['loc']['sentence_loc']
     
     data = sorted(data, key=lambda x:(int(x[1]),int(x[3][0]),x[0]))
@@ -515,7 +516,6 @@ def gen_blank_answers_data(condensed_matches, sentence_index):
     for i,d in enumerate(data):
         if current_s_id == d[1]: d[2] = ""
         else: current_s_id = d[1]
-        d[3] = ','.join([str(i) for i in d[3]])
         data[i] = [i]+d
     
     return data
@@ -613,7 +613,9 @@ def gen_populated_answers_data(sentence_index):
         dont_match = "X" if dont_match else ""
         acronym = "X" if acronym else ""
         locs = eval(locs)
+        locs = ','.join([str(i) for i in locs])
         locs_short = eval(locs_short)
+        locs_short = ','.join([str(i) for i in locs_short])
         s_loc = eval(list(ca_conn.execute('select loc from sentences where id=?', (sentence_id,)))[0][0])
         s_text = sentence_index[s_loc]['text']
         try: name = list(ca_conn.execute('select name from codes where id=?', (code_id,)))[0][0]  # fetch code name
@@ -626,7 +628,6 @@ def gen_populated_answers_data(sentence_index):
     for i,d in enumerate(data):
         if current_s_id == d[2]: d[3] = ""
         else: current_s_id = d[2]
-        d[4] = ','.join([str(i) for i in d[4]])
     
     return data
 
@@ -637,12 +638,9 @@ def load_sentences():
     sentences = []
     sentence_index = {}
     for s_id, loc, s_text, sentence, expanded_sentence in ca_conn.execute('select id, loc, string, sentence, expanded_sentence from sentences where spl_id=?', (spl_id,)):
-        try: loc = eval(loc)
-        except: loc = None
-        try: sentence = eval(sentence)
-        except: sentence = None
-        try: expanded_sentence = eval(expanded_sentence)
-        except: expanded_sentence = None
+        loc = eval(loc)
+        sentence = eval(sentence)
+        expanded_sentence = eval(expanded_sentence)
         sentences.append([s_id, loc, sentence, expanded_sentence])
 
         n_string = []
