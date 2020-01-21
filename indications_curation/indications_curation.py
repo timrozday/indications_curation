@@ -1421,6 +1421,7 @@ def select_spl(indi_spl_id, overwrite=True, verbose=True):
         c = ca_conn.execute('insert into spl(set_id,title,date,version) values (?,?,?,?)', (set_id,title,date,version))
         spl_id = c.lastrowid  # set global spl_id
         if verbose: print(f'SPL {set_id} added to database with ID: {spl_id}')
+        ca_conn.commit()
     except: 
         if overwrite:
             spl_id, cache = get_spl_id(set_id, ca_conn, {})  # set global spl_id
