@@ -515,7 +515,7 @@ def gen_blank_answers_data(condensed_matches, sentence_index):
     
     data = sorted(data, key=lambda x:(int(x[1]),int(x[3][0]),x[0]))
 
-    current_s_id = -1
+    current_s_id = -1s
     for i,d in enumerate(data):
         if current_s_id == d[1]: d[2] = ""
         else: current_s_id = d[1]
@@ -624,8 +624,8 @@ def gen_populated_answers_data(sentence_index):
         s_text = sentence_index[s_loc]['text']
         try: name = list(ca_conn.execute('select name from codes where id=?', (code_id,)))[0][0]  # fetch code name
         except: name = ""
-        data.append([answer_id, group_id, sentence_id, s_text, locs, locs_short, code, name, predicate_type, true_match, negative, indication, never_match, dont_match, acronym, note])  # set_id, d['loc']['sentence_loc']
-    
+        data.append([answer_id, group_id, sentence_id, s_text, locs, locs_short, code, name, predicate_type, true_match, indication, acronym, never_match, dont_match, negative, note])  # set_id, d['loc']['sentence_loc']
+
     data = sorted(data, key=lambda x:(int(x[2]),int(x[4][0]),x[1]))
 
     current_s_id = -1
