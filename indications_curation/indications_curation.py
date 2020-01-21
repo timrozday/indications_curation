@@ -637,9 +637,12 @@ def load_sentences():
     sentences = []
     sentence_index = {}
     for s_id, loc, s_text, sentence, expanded_sentence in ca_conn.execute('select id, loc, string, sentence, expanded_sentence from sentences where spl_id=?', (spl_id,)):
-        loc = eval(loc)
-        sentence = eval(sentence)
-        expanded_sentence = eval(expanded_sentence)
+        try: loc = eval(loc)
+        except: loc = None
+        try: sentence = eval(sentence)
+        except: sentence = None
+        try: expanded_sentence = eval(expanded_sentence)
+        except: expanded_sentence = None
         sentences.append([s_id, loc, sentence, expanded_sentence])
 
         n_string = []
