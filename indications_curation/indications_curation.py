@@ -870,7 +870,7 @@ def write_spreadsheet_answers_errors(answers_df, errors):
             else:
                 worksheet.write(idy+1, idx, v, format2)
     
-    col_widths = [8,16,18,100,16,26,22,34,18,18,18,18,18,16,60]
+    col_widths = [8,16,18,100,16,16,26,22,34,18,18,18,18,18,16,60]
     for idx, col in enumerate(answers_df):  # loop through all columns
         worksheet.set_column(idx, idx, col_widths[idx])  # set column width
         
