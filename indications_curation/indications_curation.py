@@ -33,13 +33,13 @@ from datetime import datetime
 import configparser
 
 def init():
-	set_working_dir("/Users/timrozday/Documents/manual_curation_dm_inds/csv_curation_answers")
-	read_config()
-	connect_dbs()
-	load_indexes()
-	r = gen_filter_rules_indexes()
-	print_env()
-	r = list_spls()
+    set_working_dir("/Users/timrozday/Documents/manual_curation_dm_inds/csv_curation_answers")
+    read_config()
+    connect_dbs()
+    load_indexes()
+    r = gen_filter_rules_indexes()
+    print_env()
+    r = list_spls()
 
 def connect_dbs():
     global indi_conn
@@ -149,7 +149,7 @@ def setup_database(fn="/Users/timrozday/Documents/manual_curation_dm_inds/csv_cu
     ca_conn.execute("create table    sentences(id INTEGER, parent_node_id INTEGER, spl_id INTEGER, loc TEXT, string TEXT, sentence TEXT, expanded_sentence TEXT, primary key(id), foreign key(parent_node_id) references nodes(id), foreign key(spl_id) references spl(id))")
 
     ca_conn.execute("create table        codes(id INTEGER, code TEXT, source TEXT, name TEXT, primary key(id))")
-    ca_conn.execute("create table      answers(id INTEGER, answer_id INTEGER, group_id INTEGER, sentence_id INTEGER, locs TEXT, code TEXT, predicate_type TEXT, code_id INTEGER, true_match BOOLEAN, negative BOOLEAN, indication TEXT, never_match BOOLEAN, dont_match BOOLEAN, acronym BOOLEAN, note TEXT, timestamp TEXT, author TEXT, primary key(id), foreign key(sentence_id) references sentences(id), foreign key(code_id) references codes(id))")
+    ca_conn.execute("create table      answers(id INTEGER, answer_id INTEGER, group_id INTEGER, sentence_id INTEGER, locs TEXT, locs_short TEXT, code TEXT, predicate_type TEXT, code_id INTEGER, true_match BOOLEAN, negative BOOLEAN, indication TEXT, never_match BOOLEAN, dont_match BOOLEAN, acronym BOOLEAN, note TEXT, timestamp TEXT, author TEXT, primary key(id), foreign key(sentence_id) references sentences(id), foreign key(code_id) references codes(id))")
     ca_conn.execute("create table  answers_hier(id INTEGER, child_id INTEGER, parent_id INTEGER, primary key(id), foreign key(child_id) references matches(id), foreign key(parent_id) references matches(id))")
 
     ca_conn.execute("create table  never_match(id INTEGER, spl_id INTEGER, code_id INTEGER, timestamp TEXT, author TEXT, primary key(id), foreign key(code_id) references codes(id), foreign key(spl_id) references spl(id))")
@@ -322,7 +322,7 @@ def help():
         "add_filter_rules_from_spreadsheet": ("Add filter rules from the spreadsheet (allowing manual modification of the rules)","verbose=False: boolean"),
         "add_filter_rules_from_answers": ("Add filter rules from curation answers of the current SPL","verbose=False: boolean"),
         "add_filter_rules_from_all_answers": ("Add filter rules from all curation answers","verbose=False: boolean"),
-	"gen_curation_spreadsheet": ("Generate curation spreadsheet",""),
+    "gen_curation_spreadsheet": ("Generate curation spreadsheet",""),
         "load_curation_spreadsheet": ("Generate spreadsheet of curation answers loaded from the database",""),
 
         "verify_answers": ("Verify curation answers in spreadsheet, printing out errors and editting the spreadsheet to highlight errors","verbose=False: boolean, write_file=True: (boolean)"),
@@ -507,7 +507,7 @@ def gen_blank_answers_data(condensed_matches, sentence_index):
                 s_text = sentence_index[d['loc']['sentence_loc']]['text']
 
                 path = d['loc']['path']
-                data.append([group_i, s_id, s_text, path, code, name, p_type, "?", "", "", "", "", "", ""])  # set_id, d['loc']['sentence_loc']
+                data.append([group_i, s_id, s_text, path, path, code, name, p_type, "?", "", "", "", "", "", ""])  # set_id, d['loc']['sentence_loc']
     
     data = sorted(data, key=lambda x:(int(x[1]),int(x[3][0]),x[0]))
 
@@ -521,7 +521,7 @@ def gen_blank_answers_data(condensed_matches, sentence_index):
     return data
 
 def write_spreadsheet_answers(answers_df, writer):
-    col_widths = [8,16,18,100,16,26,22,34,18,18,18,18,18,16,60]
+    col_widths = [8,16,18,100,16,16,26,22,34,18,18,18,18,18,16,60]
 
     answers_df.to_excel(writer, index=False, sheet_name='answers')  # send df to writer
 
@@ -582,7 +582,7 @@ def gen_curation_spreadsheet():
     filtered_sentences, filtered_matches = filter_match_sentences(sentences, matches)
     condensed_matches = group_matches(filtered_sentences, filtered_matches)
     data = gen_blank_answers_data(condensed_matches, sentence_index)
-    answers_df = pd.DataFrame(data, columns=['id', 'group_id', 'sentence_id', 'sentence', 'match_path', 'code', 'name', 'predicate_type', "true_match", "indication", "acronym", "never_match", "dont_match", "negative", "note"])  # 'set_id', 'sentence_loc'
+    answers_df = pd.DataFrame(data, columns=['id', 'group_id', 'sentence_id', 'sentence', 'match_path', 'match_path_short', 'code', 'name', 'predicate_type', "true_match", "indication", "acronym", "never_match", "dont_match", "negative", "note"])  # 'set_id', 'sentence_loc'
     
     guide_df = pd.read_excel(f"{working_dir}/{answer_guide_fn}", sheet_name='indication')
     
@@ -603,7 +603,7 @@ def gen_populated_answers_data(sentence_index):
     s_ids = tuple([v['id'] for k,v in sentence_index.items()])
 
     data = []
-    for answer_id, group_id, sentence_id, locs, code, predicate_type, code_id, true_match, negative, indication, never_match, dont_match, acronym, note, timestamp, author in ca_conn.execute(f'select answer_id, group_id, sentence_id, locs, code, predicate_type, code_id, true_match, negative, indication, never_match, dont_match, acronym, note, timestamp, author from answers where sentence_id in {repr(s_ids)}'):
+    for answer_id, group_id, sentence_id, locs, locs_short, code, predicate_type, code_id, true_match, negative, indication, never_match, dont_match, acronym, note, timestamp, author in ca_conn.execute(f'select answer_id, group_id, sentence_id, locs, locs_short, code, predicate_type, code_id, true_match, negative, indication, never_match, dont_match, acronym, note, timestamp, author from answers where sentence_id in {repr(s_ids)}'):
         if true_match is None: 
             true_match = "?"
         else:
@@ -613,11 +613,12 @@ def gen_populated_answers_data(sentence_index):
         dont_match = "X" if dont_match else ""
         acronym = "X" if acronym else ""
         locs = eval(locs)
+        locs_short = eval(locs_short)
         s_loc = eval(list(ca_conn.execute('select loc from sentences where id=?', (sentence_id,)))[0][0])
         s_text = sentence_index[s_loc]['text']
         try: name = list(ca_conn.execute('select name from codes where id=?', (code_id,)))[0][0]  # fetch code name
         except: name = ""
-        data.append([answer_id, group_id, sentence_id, s_text, locs, code, name, predicate_type, true_match, negative, indication, never_match, dont_match, acronym, note])  # set_id, d['loc']['sentence_loc']
+        data.append([answer_id, group_id, sentence_id, s_text, locs, locs_short, code, name, predicate_type, true_match, negative, indication, never_match, dont_match, acronym, note])  # set_id, d['loc']['sentence_loc']
     
     data = sorted(data, key=lambda x:(int(x[2]),int(x[4][0]),x[1]))
 
@@ -679,7 +680,7 @@ def load_curation_spreadsheet():
 
     sentences, sentences_df, sentence_index = gen_populated_sentences_df()
     data = gen_populated_answers_data(sentence_index)
-    answers_df = pd.DataFrame(data, columns=['id', 'group_id', 'sentence_id', 'sentence', 'match_path', 'code', 'name', 'predicate_type', "true_match", "indication", "acronym", "never_match", "dont_match", "negative", "note"])  # 'set_id', 'sentence_loc'
+    answers_df = pd.DataFrame(data, columns=['id', 'group_id', 'sentence_id', 'sentence', 'match_path', 'match_path_short', 'code', 'name', 'predicate_type', "true_match", "indication", "acronym", "never_match", "dont_match", "negative", "note"])  # 'set_id', 'sentence_loc'
     guide_df = pd.read_excel(f"{working_dir}/{answer_guide_fn}", sheet_name='indication')
     
     writer = pd.ExcelWriter(f"{working_dir}/{curation_answers_fn}", engine='xlsxwriter')
@@ -699,6 +700,13 @@ def parse_answer_row(r, answers_df):
     except Exception as e: 
         if isinstance(r['match_path'], int):
             r['match_path'] = [r['match_path']]
+        else:
+            raise e
+
+    try: r['match_path_short'] = tuple([int(n) for n in r['match_path_short'].split(',')])
+    except Exception as e: 
+        if isinstance(r['match_path_short'], int):
+            r['match_path_short'] = [r['match_path_short']]
         else:
             raise e
     
@@ -794,6 +802,7 @@ def gen_answers_data(r_data):
                      r['sentence_id'], 
                      r['sentence'], 
                      path, 
+                     path, 
                      r['code'], 
                      r['name'], 
                      r['predicate_type'], 
@@ -808,19 +817,20 @@ def gen_answers_data(r_data):
         if len(r['error'])>0:
             errors[i] = set()
             if "indication answer text not valid" in r['error']:
-                errors[i].add(9)
+                errors[i].add(10)
             if "indication not present" in r['error']:
-                errors[i].add(9)
+                errors[i].add(10)
             if "indication answer number not valid" in r['error']:
-                errors[i].add(9)
+                errors[i].add(10)
             # if "match code not found" in r['error']:
             #     errors[i].add(5)
             if "sentence not found" in r['error']:
                 errors[i].add(2)
             if "word not in sentence" in r['error']:
                 errors[i].add(4)
+                errors[i].add(5)
             if "unanswered" in r['error']:
-                errors[i].add(8)
+                errors[i].add(9)
         
     return data, errors
 
@@ -872,7 +882,7 @@ def write_spreadsheet_answers_errors(answers_df, errors):
 def verify_answers(verbose=False, write_file=True):
     r_data = read_answers_spreadsheet()
     data, errors = gen_answers_data(r_data)
-    answers_df = pd.DataFrame(data, columns=['id', 'group_id', 'sentence_id', 'sentence', 'match_path', 'code', 'name', 'predicate_type', "true_match", "indication", "acronym", "never_match", "dont_match", "negative", "note"])  # 'set_id', 'sentence_loc'
+    answers_df = pd.DataFrame(data, columns=['id', 'group_id', 'sentence_id', 'sentence', 'match_path', 'match_path_short', 'code', 'name', 'predicate_type', "true_match", "indication", "acronym", "never_match", "dont_match", "negative", "note"])  # 'set_id', 'sentence_loc'
     
     if write_file:
         write_spreadsheet_answers_errors(answers_df, errors)
@@ -997,6 +1007,7 @@ def save_curation_answers(verbose=False, overwrite=True):
                     r['group_id'],
                     r['sentence_id'],
                     repr(r['match_path']),
+                    repr(r['match_path_short']),
                     r['code'],
                     r['predicate_type'],
                     code_id,
@@ -1018,10 +1029,10 @@ def save_curation_answers(verbose=False, overwrite=True):
         except: hier_dict[parent_id] = {r['id']}
             
         try:
-            ca_conn.execute('insert into answers(answer_id, group_id, sentence_id, locs, code, predicate_type, code_id, true_match, negative, indication, never_match, dont_match, acronym, note, timestamp, author) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', row_data)
+            ca_conn.execute('insert into answers(answer_id, group_id, sentence_id, locs, locs_short, code, predicate_type, code_id, true_match, negative, indication, never_match, dont_match, acronym, note, timestamp, author) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', row_data)
         except IntegrityError as e:
             if overwrite:
-                ca_conn.execute('replace into answers(answer_id, group_id, sentence_id, locs, code, predicate_type, code_id, true_match, negative, indication, never_match, dont_match, acronym, note, timestamp, author) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', row_data)
+                ca_conn.execute('replace into answers(answer_id, group_id, sentence_id, locs, locs_short, code, predicate_type, code_id, true_match, negative, indication, never_match, dont_match, acronym, note, timestamp, author) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', row_data)
                 if verbose: print(f"Answer {row_data[0]} overwritten")
             else:
                 if verbose: print(f"Answer {row_data[0]} already in database")
@@ -1158,7 +1169,7 @@ def add_filter_rules_from_all_answers(verbose=False):
         add_filter_rules_from_answer(spl_id, s_id, match_path, code, acronym, never_match, dont_match, verbose=verbose)
     
     ca_conn.commit()
-			    
+                
 def get_insert_spl_id(set_id, ca_conn, cache, verbose=False):
     global zip_metadata
 
@@ -1565,7 +1576,5 @@ def closest_efo(q, print_results=True):
     if print_results: print(tabulate(df, headers='keys', showindex=False, tablefmt='psql'))
 
     return df
-
-
 
 
