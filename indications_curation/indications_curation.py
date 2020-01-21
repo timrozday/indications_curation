@@ -1078,10 +1078,22 @@ def get_ids():
     node_ids = [int(i[0]) for i in ca_conn.execute('select id from nodes where spl_id=?', (spl_id,))]  # get node IDs
     
     # get answers/answers_hier
-    answer_ids = [int(i[0]) for i in ca_conn.execute(f'select id from answers where sentence_id in {repr(tuple(sentence_ids))}')]
-    answers_hier_ids = [int(i[0]) for i in ca_conn.execute(f'select id from answers_hier where parent_id in {repr(tuple(answer_ids))}')]
+    if len(sentence_ids)>1:
+        answer_ids = [int(i[0]) for i in ca_conn.execute(f'select id from answers where sentence_id in {repr(tuple(sentence_ids))}')]
+    else: 
+        if len(sentence_ids)==1:
+            answer_ids = [int(i[0]) for i in ca_conn.execute(f'select id from answers where sentence_id=?', (sentence_ids[0],))]
+        else:
+            answer_ids = []
+
+    if len(answer_ids)>1:
+        answers_hier_ids = [int(i[0]) for i in ca_conn.execute(f'select id from answers_hier where parent_id in {repr(tuple(answer_ids))}')]
+    else:
+        if len(answer_ids)==1:
+            answers_hier_ids = [int(i[0]) for i in ca_conn.execute(f'select id from answers_hier where parent_id=?', (answer_ids[0],))]
+        else:
+            answers_hier_ids = []
     
-    return sentence_ids, node_ids, answer_ids, answers_hier_ids  # spl_id
 
 def delete_curation_answers_queries(answers_hier_ids, answer_ids):
     ca_conn.execute(f'delete from answers_hier where id in {repr(tuple(answers_hier_ids))}')
