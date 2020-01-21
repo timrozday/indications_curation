@@ -668,9 +668,34 @@ def load_sentences():
 
     return sentences, sentence_index
 
-def load_sentences_global():
+def load_sentences_from_ca():
     global sentences
     sentences, sentence_index = load_sentences()
+
+def load_sentences_from_indi():
+    global indi_conn
+    global set_id
+    global sentences
+
+    sentences = []
+    sentence_index = {}
+    indi_spl_id = int(list(indi_conn.execute('select id from spl where set_id=?', (set_id,)))[0][0])
+    for s_id, loc, s_text, sentence, expanded_sentence in indi_conn.execute('select id, loc, string, sentence, expanded_sentence from sentences where spl_id=?', (indi_spl_id,)):
+        try: loc = eval(loc)
+        except: loc = None
+        try: sentence = eval(sentence)
+        except: sentence = None
+        try: expanded_sentence = eval(expanded_sentence)
+        except: expanded_sentence = None
+        sentences.append([s_id, loc, sentence, expanded_sentence])
+
+        n_string = []
+        for w in sentence['words'].values():
+            if 'parent' in w.keys():
+                if not w['id'] == w['parent']: continue
+            n_string.append(f"{w['word']}|{w['id']}")
+
+        sentence_index[loc] = {'id': s_id, 'text': ' '.join(n_string)}
 
 def gen_populated_sentences_df():
     global spl_id
