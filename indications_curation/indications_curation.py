@@ -690,7 +690,12 @@ def gen_populated_sentences_df():
     sentences_df = pd.DataFrame(sentences_data, columns=["loc", "sentence_id", "enumerated_string", "string"])
     
     return sentences, sentences_df, sentence_index
+
+def load_sentences():
+    global sentences
     
+    sentences, sentences_df, sentence_index = gen_populated_sentences_df()
+
 def load_curation_spreadsheet():
     global sentences
     global answer_cols
