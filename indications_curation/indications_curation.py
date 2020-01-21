@@ -614,7 +614,7 @@ def gen_populated_answers_data(sentence_index):
             answers = ca_conn.execute(f'select answer_id, group_id, sentence_id, locs, locs_short, code, predicate_type, code_id, true_match, negative, indication, never_match, dont_match, acronym, note, timestamp, author from answers where sentence_id=?', (s_ids[0],))
         else:
             return []
-    
+
     for answer_id, group_id, sentence_id, locs, locs_short, code, predicate_type, code_id, true_match, negative, indication, never_match, dont_match, acronym, note, timestamp, author in answers:
         if true_match is None: 
             true_match = "?"
@@ -1094,14 +1094,33 @@ def get_ids():
         else:
             answers_hier_ids = []
     
+    return sentence_ids, node_ids, answer_ids, answers_hier_ids  # spl_id
 
 def delete_curation_answers_queries(answers_hier_ids, answer_ids):
-    ca_conn.execute(f'delete from answers_hier where id in {repr(tuple(answers_hier_ids))}')
-    ca_conn.execute(f'delete from answers where id in {repr(tuple(answer_ids))}')
+    if len(answers_hier_ids)>1:
+        ca_conn.execute(f'delete from answers_hier where id in {repr(tuple(answers_hier_ids))}')
+    else:
+        if len(answers_hier_ids)==1:
+            ca_conn.execute(f'delete from answers_hier where id=?',(answers_hier_ids,))
+
+    if len(answer_ids)>1:
+        ca_conn.execute(f'delete from answers where id in {repr(tuple(answer_ids))}')
+    else:
+        if len(answer_ids)==1:
+            ca_conn.execute(f'delete from answers where id=?', (answer_ids[0],))
     
 def delete_sentences_queries(sentence_ids, node_ids):
-    ca_conn.execute(f'delete from sentences where id in {repr(tuple(sentence_ids))}')
-    ca_conn.execute(f'delete from nodes where id in {repr(tuple(node_ids))}')
+    if len(sentence_ids)>1:
+        ca_conn.execute(f'delete from sentences where id in {repr(tuple(sentence_ids))}')
+    else:
+        if len(sentence_ids)==1:
+            ca_conn.execute(f'delete from sentences where id=?', (sentence_ids[0],))
+
+    if len(node_ids)>1:
+        ca_conn.execute(f'delete from nodes where id in {repr(tuple(node_ids))}')
+    else:
+        if len(node_ids)==1:
+            ca_conn.execute(f'delete from sentences where id=?', (node_ids[0],))
 
 def delete_spl_queries(spl_id):
     ca_conn.execute(f'delete from spl where id=?', (spl_id,))
