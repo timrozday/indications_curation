@@ -85,6 +85,9 @@ def load_indexes():
     global code_name_index
     global nlp
     global lemmatizer
+    global answer_cols
+
+    answer_cols = ['id', 'group_id', 'sentence_id', 'sentence', 'match_path', 'match_path_short', 'code', 'name', 'predicate_type', "true_match", "indication", "acronym", "never_match", "dont_match", "negative", "note"]
 
     nlp = spacy.load('en_core_sci_md')
     lemmatizer = Lemmatizer(LEMMA_INDEX, LEMMA_EXC, LEMMA_RULES)
@@ -575,6 +578,7 @@ def gen_curation_spreadsheet():
     global answer_guide_fn
     global working_dir
     global sentences
+    global answer_cols
     
     sentences, matches = gen_spl_matches()
     sentences_df, sentence_index = gen_sentences_df(sentences, matches)
@@ -582,7 +586,7 @@ def gen_curation_spreadsheet():
     filtered_sentences, filtered_matches = filter_match_sentences(sentences, matches)
     condensed_matches = group_matches(filtered_sentences, filtered_matches)
     data = gen_blank_answers_data(condensed_matches, sentence_index)
-    answers_df = pd.DataFrame(data, columns=['id', 'group_id', 'sentence_id', 'sentence', 'match_path', 'match_path_short', 'code', 'name', 'predicate_type', "true_match", "indication", "acronym", "never_match", "dont_match", "negative", "note"])  # 'set_id', 'sentence_loc'
+    answers_df = pd.DataFrame(data, columns=answer_cols)  # 'set_id', 'sentence_loc'
     
     guide_df = pd.read_excel(f"{working_dir}/{answer_guide_fn}", sheet_name='indication')
     
@@ -681,10 +685,11 @@ def gen_populated_sentences_df():
     
 def load_curation_spreadsheet():
     global sentences
+    global answer_cols
 
     sentences, sentences_df, sentence_index = gen_populated_sentences_df()
     data = gen_populated_answers_data(sentence_index)
-    answers_df = pd.DataFrame(data, columns=['id', 'group_id', 'sentence_id', 'sentence', 'match_path', 'match_path_short', 'code', 'name', 'predicate_type', "true_match", "indication", "acronym", "never_match", "dont_match", "negative", "note"])  # 'set_id', 'sentence_loc'
+    answers_df = pd.DataFrame(data, columns=answer_cols)  # 'set_id', 'sentence_loc'
     guide_df = pd.read_excel(f"{working_dir}/{answer_guide_fn}", sheet_name='indication')
     
     writer = pd.ExcelWriter(f"{working_dir}/{curation_answers_fn}", engine='xlsxwriter')
@@ -697,8 +702,10 @@ def load_curation_spreadsheet():
 
 
 
-def parse_answer_row(r, answers_df):
-    r = {c:r[i] for i,c in enumerate(answers_df.columns)}
+def parse_answer_row(r):
+    global answer_cols
+
+    r = {c:r[i] for i,c in enumerate(answer_cols)}
     
     try: r['match_path'] = tuple([int(n) for n in r['match_path'].split(',')])
     except Exception as e: 
@@ -747,7 +754,7 @@ def read_answers_spreadsheet():
 
     r_data = []
     for row in answers_df.values:
-        r = parse_answer_row(row, answers_df)
+        r = parse_answer_row(row)
         r['error'] = set()
 
         if r['true_match'] is None:
@@ -800,13 +807,14 @@ def gen_answers_data(r_data):
                 true_match = ""
         
         path = ','.join([str(i) for i in r['match_path']])
+        path_short = ','.join([str(i) for i in r['match_path_short']])
         
         data.append([r['id'], 
                      r['group_id'], 
                      r['sentence_id'], 
                      r['sentence'], 
                      path, 
-                     path, 
+                     path_short, 
                      r['code'], 
                      r['name'], 
                      r['predicate_type'], 
@@ -884,9 +892,11 @@ def write_spreadsheet_answers_errors(answers_df, errors):
     writer.close()
 
 def verify_answers(verbose=False, write_file=True):
+    global answer_cols
+
     r_data = read_answers_spreadsheet()
     data, errors = gen_answers_data(r_data)
-    answers_df = pd.DataFrame(data, columns=['id', 'group_id', 'sentence_id', 'sentence', 'match_path', 'match_path_short', 'code', 'name', 'predicate_type', "true_match", "indication", "acronym", "never_match", "dont_match", "negative", "note"])  # 'set_id', 'sentence_loc'
+    answers_df = pd.DataFrame(data, columns=answer_cols)  # 'set_id', 'sentence_loc'
     
     if write_file:
         write_spreadsheet_answers_errors(answers_df, errors)
@@ -1004,7 +1014,7 @@ def save_curation_answers(verbose=False, overwrite=True):
     hier_dict = {}
     group_dict = {}
     for r in answers_df.values:
-        r = parse_answer_row(r, answers_df)
+        r = parse_answer_row(r)
         ts = str(datetime.now())
         code_id = insert_code(r['code'], verbose=False, overwrite=False)
         row_data = (r['id'],
