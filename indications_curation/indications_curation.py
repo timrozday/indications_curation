@@ -668,6 +668,10 @@ def load_sentences():
 
     return sentences, sentence_index
 
+def load_sentences_global():
+    global sentences
+    sentences, sentence_index = load_sentences()
+
 def gen_populated_sentences_df():
     global spl_id
     global ca_conn
@@ -690,11 +694,6 @@ def gen_populated_sentences_df():
     sentences_df = pd.DataFrame(sentences_data, columns=["loc", "sentence_id", "enumerated_string", "string"])
     
     return sentences, sentences_df, sentence_index
-
-def load_sentences():
-    global sentences
-    
-    sentences, sentences_df, sentence_index = gen_populated_sentences_df()
 
 def load_curation_spreadsheet():
     global sentences
