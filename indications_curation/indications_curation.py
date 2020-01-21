@@ -515,7 +515,7 @@ def gen_blank_answers_data(condensed_matches, sentence_index):
     
     data = sorted(data, key=lambda x:(int(x[1]),int(x[3][0]),x[0]))
 
-    current_s_id = -1s
+    current_s_id = -1
     for i,d in enumerate(data):
         if current_s_id == d[1]: d[2] = ""
         else: current_s_id = d[1]
