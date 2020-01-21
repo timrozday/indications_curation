@@ -607,7 +607,15 @@ def gen_populated_answers_data(sentence_index):
     s_ids = tuple([v['id'] for k,v in sentence_index.items()])
 
     data = []
-    for answer_id, group_id, sentence_id, locs, locs_short, code, predicate_type, code_id, true_match, negative, indication, never_match, dont_match, acronym, note, timestamp, author in ca_conn.execute(f'select answer_id, group_id, sentence_id, locs, locs_short, code, predicate_type, code_id, true_match, negative, indication, never_match, dont_match, acronym, note, timestamp, author from answers where sentence_id in {repr(s_ids)}'):
+    if len(s_ids)>1:
+        answers = ca_conn.execute(f'select answer_id, group_id, sentence_id, locs, locs_short, code, predicate_type, code_id, true_match, negative, indication, never_match, dont_match, acronym, note, timestamp, author from answers where sentence_id in {repr(s_ids)}')
+    else:
+        if len(s_ids)==1:
+            answers = ca_conn.execute(f'select answer_id, group_id, sentence_id, locs, locs_short, code, predicate_type, code_id, true_match, negative, indication, never_match, dont_match, acronym, note, timestamp, author from answers where sentence_id=?', (s_ids[0],))
+        else:
+            return []
+    
+    for answer_id, group_id, sentence_id, locs, locs_short, code, predicate_type, code_id, true_match, negative, indication, never_match, dont_match, acronym, note, timestamp, author in answers:
         if true_match is None: 
             true_match = "?"
         else:
