@@ -365,8 +365,7 @@ def help():
 def expand_sentence(original_sentence):
     expanded_sentence = tq.expand_lists(copy.deepcopy(original_sentence))
     expanded_sentence = tq.expand_brackets(expanded_sentence)
-    expanded_sentence = tq.expand_slash(expanded_sentence)
-    expanded_sentence = tq.expand_hyphen(expanded_sentence)
+    expanded_sentence = tq.expand_hyphen_slash(expanded_sentence)
     expanded_sentence = tq.expand_index(original_sentence, tq.query_thesauruses, tq.query_names_indexes, [thes_conn, {'ncit', 'uberon'}], [thes_conn])  # substitute based on thesaurus
     return expanded_sentence
 
